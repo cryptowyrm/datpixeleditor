@@ -128,6 +128,27 @@ function changeCellNum(width, height) {
 	$("#size").text("" + width + "x" + height);
 }
 
+async function loadDatArchive() {
+	if (state.settings.daturl) {
+		state.datarchive = await DatArchive.load(state.settings.daturl);
+	} else {
+		try {
+			state.datarchive = await DatArchive.create({
+				title: 'My Dat Pixel Editor images',
+				description: 'All of my images created with Dat Pixel Editor are stored here',
+				prompt: false
+			});
+			state.settings.daturl = state.datarchive.url;
+			saveSettings();
+		} catch(error) {
+			console.log(error);
+			alert(error);
+			return;
+		}
+	}
+	await state.datarchive.mkdir("/images");
+}
+
 function loadSettings() {
 	if(localStorage.settings) {
 		state.settings = JSON.parse(localStorage.getItem("settings"));
@@ -137,6 +158,7 @@ function loadSettings() {
 		saveSettings();
 	}
 }
+
 function saveSettings() {
 	localStorage.setItem("settings", JSON.stringify(state.settings));
 }
@@ -989,7 +1011,7 @@ function dataUrlToBase(dataurl) {
 	return dataurl.split(",")[1];
 }
 
-function save() {
+async function save() {
 	let isnew = false;
 	if(state.loaded_image === null) {
 		isnew = true;
@@ -1001,9 +1023,9 @@ function save() {
 	let saved = new Date().getTime();
 	let filename = null;
 	if(isnew) {
-		localStorage.setItem(state.loaded_image, JSON.stringify({saved: saved, filename: state.loaded_image_filename, image: currentImageToDataUrl()}));
-	}
-	else {
+		//localStorage.setItem(state.loaded_image, JSON.stringify({saved: saved, filename: state.loaded_image_filename, image: currentImageToDataUrl()}));
+		await state.datarchive.writeFile("images/" + state.loaded_image + ".png", dataUrlToBase(currentImageToDataUrl()), "base64");
+	} else {
 		updateEntry("image", currentImageToDataUrl());
 		updateEntry("saved", saved);
 	}
@@ -1121,8 +1143,6 @@ $(document).ready(function() {
 	canvas_image = document.getElementById("canvas-image").getContext("2d");
 	
 	loadPixels();
-
-	loadSettings();
 	
 	// Hide the delete and duplicate buttons
 	$("#delete").hide();
@@ -1539,4 +1559,8 @@ $(document).ready(function() {
 		}
 		
 	});
+
+	loadSettings();
+
+	loadDatArchive();
 });
