@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dat Pixel Editor</title>
+<link rel="stylesheet" href="colorpicker.css" type="text/css" />
+<link rel="stylesheet" href="datpixeleditor.css" type="text/css" />
+<script src="jquery.js"></script>
+<script src="jquery.timeago.js"></script>
+<script type="text/javascript" src="colorpicker.js"></script>
+<script src="uuid.js"></script>
+<script src="datpixeleditor.js"></script>
+</head>
+<body>
+<div id="disabler"></div>
+<div id="disabler-message-wrapper"><span id="disabler-message"></span><span id="disablerclose">X</span></div>
+
+<div id="toolbar">
+<span class="spacer"></span>
+<span id="logo">Dat Pixel Editor</span>
+<span id="new" class="button" title="New Image"><div style="background: url(images/new.png)"></div></span>
+<span id="load" class="button" title="Load Image"><div style="background: url(images/load.png)"></div></span>
+<span id="save" class="button" title="Save Image (Ctrl + S)"><div style="background: url(images/save.png)"></div></span>
+<span class="spacer"></span>
+<span id="undo" class="button" title="Undo (Ctrl + Z)"><div style="background: url(images/undo.png)"></div></span>
+<span id="single-undo" class="button" title="Single Pixel Undo (Ctrl + Shift + Z)"><div style="background: url(images/singleundo.png)"></div></span>
+<div id="message"><span></span></div>
+</div>
+
+<div id="imagepicker-scroller"><div id="imagepicker"></div></div>
+
+<canvas id="canvas-preview" width="32" height="32"></canvas>
+<canvas id="canvas-image" width="32" height="32"></canvas>
+<canvas id="canvas-dataurl" width="32" height="32"></canvas>
+
+<div id="leftbox">
+<span class="divider">Preview</span>
+<div id="ppc-wrapper">
+<div id="previewbox"><img id="preview" /></div>
+<div style="color: gray;">Right click image to export as PNG</div>
+</div>
+
+<span class="divider">Colorpicker & Recent Colors</span>
+<div id="prc-wrapper">
+<div id="colorpicker" title="Color picker (P)"></div>
+<div id="recent-colors"></div>
+</div>
+
+<span class="divider">Tools</span>
+<div id="tools">
+<span id="brush" title="Brush (B)"><div style="background: url(images/brush.png)"></div></span>
+<span id="remove" title="Eraser (E)"><div style="background: url(images/eraser.png)"></div></span>
+<span id="bucket" title="Fill Bucket (F)"><div style="background: url(images/bucket.png)"></div></span>
+<span id="move" title="Move (M)"><div style="background: url(images/move.png)"></div></span>
+<span id="line" title="Line (L)"><div style="background: url(images/line.png)"></div></span>
+<span id="rectangle" title="Rectangle (R)"><div style="background: url(images/rectangle.png)"></div></span>
+<span id="circle" title="Circle (C)"><div style="background: url(images/circle.png)"></div></span>
+</div>
+</div>
+
+<div id="wrapper">
+<canvas id="canvas-painting" width="640" height="640"></canvas>
+<canvas id="canvas-tools" width="640" height="640"></canvas>
+<canvas id="canvas-grid" width="640" height="640"></canvas>
+</div>
+
+<div id="rightbox">
+<span class="divider">Info</span>
+<div id="info">
+<table cellspacing="0" cellpadding="4">
+<tr class="odd"><td valign="top">Name</td><td id="info-filename" align="right"><span id="filename">Unnamed</span><input type="text" /><span id="cancelrename">X</span></td></tr>
+<tr class="even"><td valign="top">Size</td><td id="info-size" align="right"><span id="size">32x32</span></td></tr>
+<tr id="sizetr" class="even"><td id="info-size-edit" colspan="2"><input type="text" /> x <input type="text" /><button id="setsize" title="Set the size of the image">Set</button><button id="cancelsize" title="Cancel">X</button></td></tr>
+<tr class="odd"><td>Pixels</td><td align="right"><span id="pixelcount">0 pixels</span></td></tr>
+<tr class="even"><td valign="top">Saved</td><td id="info-saved" align="right">never</td></tr>
+</table>
+<span id="delete" class="button" title="Deletes the current picture">Delete</span>
+<span id="duplicate" class="button" title="Duplicates the current picture">Duplicate</span>
+</div>
+<span class="divider">Palette</span>
+<div id="palette"></div>
+</div>
+</body>
+</html>
