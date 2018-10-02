@@ -4,7 +4,7 @@ A pixel graphics editor for the [Beaker Browser](https://beakerbrowser.com/).
 
 Opens images from and saves images to [Dat](https://datproject.org/) archives. The first time you open the app, it will ask you to create a new DAT archive where all your pictures are going to be stored.
 
-You can try it out in the Beaker Browser at [this URL](dat://dpe.hashbase.io).
+You can try it out in the Beaker Browser at [dat://dpe.hashbase.io](dat://dpe.hashbase.io).
 
 ![Screenshot](https://i.imgur.com/EZEX3X0.png)
 
@@ -46,9 +46,9 @@ You're welcome to help me build this app, you don't have to be a JavaScript pro 
 ## Links
 
 ### HTTPS
-[Github (feel free to send pull requests and bug reports)](https://github.com/cryptowyrm/datpixeleditor)
+- [Github (feel free to send pull requests and bug reports)](https://github.com/cryptowyrm/datpixeleditor)
 
 ### Beaker Browser
-[Dat Pixel Editor](dat://dpe.hashbase.io)
-[My Fritter profile](dat://fritter.hashbase.io/user/dat://fritter-cryptic.hashbase.io)
-[My Beaker Homepage (Blog and other Beaker projects)](dat://b6201615277a04b958afd25b3531b90083f9dc4e2c38e3cbedb0a257def456fe/)
+- [Dat Pixel Editor: dat://dpe.hashbase.io](dat://dpe.hashbase.io)
+- [My Fritter profile: dat://fritter.hashbase.io/user/dat://fritter-cryptic.hashbase.io](dat://fritter.hashbase.io/user/dat://fritter-cryptic.hashbase.io)
+- [My Beaker Homepage: dat://b6201615277a04b958afd25b3531b90083f9dc4e2c38e3cbedb0a257def456fe/](dat://b6201615277a04b958afd25b3531b90083f9dc4e2c38e3cbedb0a257def456fe/)
