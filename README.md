@@ -6,6 +6,8 @@ Opens images from and saves images to [Dat](https://datproject.org/) archives. T
 
 You can try it out in the Beaker Browser at [this URL](dat://dpe.hashbase.io).
 
+![Screenshot](https://i.imgur.com/EZEX3X0.png)
+
 ## Features
 
 It's very basic so should be quite intuitive. You can theoretically open any picture with the editor by putting one you want to edit into the images folder of the Dat archive it creates for you, but keep it within reason, if the image is too big it's going to be slow, it's meant for making icons and sprites and other small images like that :)
