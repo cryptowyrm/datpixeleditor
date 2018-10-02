@@ -1022,6 +1022,16 @@ function dataUrlToBase(dataurl) {
 	return dataurl.split(",")[1];
 }
 
+function exportImage() {
+	if(state.loaded_image) {
+		let filename = state.loaded_image_filename + ".png";
+		let download_link = $('<a download="' + filename + '" href="' + currentImageToDataUrl() + '">Download</a>');
+		download_link[0].click();
+	} else {
+		alert("You need to open a file first to export it.");
+	}
+}
+
 async function save() {
 	if(state.loaded_image === null) {
 		state.loaded_image = "image-" + UUID.generate();
@@ -1462,6 +1472,11 @@ $(document).ready(function() {
 	// Set up save handler
 	$("span#save").click(function() {
 		save();
+	});
+
+	// Set up file export handler
+	$("span#export").click(function() {
+		exportImage();
 	});
 	
 	// Set up event handlers on the ColorPicker
