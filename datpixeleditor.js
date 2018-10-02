@@ -18,6 +18,7 @@ const state = {
 	resize_start: null,
 	resize_timer: null,
 	image_picker_visible: false,
+	images: {},
 	loaded_image: null,
 	loaded_image_filename: null,
 	changed: false, // true if image changed since last save
@@ -146,7 +147,11 @@ async function loadDatArchive() {
 			return;
 		}
 	}
-	await state.datarchive.mkdir("/images");
+	try {
+		await state.datarchive.mkdir("/images");
+	} catch(error) {
+		// folder already exists
+	}
 }
 
 function loadSettings() {
@@ -225,18 +230,6 @@ function enableShortcuts() {
 
 function disableShortcuts() {
 	$(document).unbind("keydown", shortcuts);
-}
-
-function findImageWithValue(key, value) {
-	for(let i=0; i<localStorage.length; i++) {
-		let lkey = localStorage.key(i)
-		if(lkey.substring(0,6) === "image-") {
-			let entry = getAnEntry(lkey);
-			if(entry[key] && entry[key] === value)
-				return lkey;
-		}
-	}
-	return null;
 }
 
 function showDisabler(message, callback) {
@@ -833,9 +826,13 @@ function resizeGrid() {
 	restoreGrid();
 }
 
+function withoutExtension(filename) {
+	return filename.slice(0, filename.lastIndexOf("."));
+}
+
 function openImageWithId(imageid) {
 	state.loaded_image = imageid;
-	let image_entry = JSON.parse(localStorage[state.loaded_image]);
+	let image_entry = state.images[state.loaded_image];
 	dataUrlToPixels(image_entry.image, function(imagedata, width, height) {
 		changeCellNum(width, height);
 		state.pixel_colors = imagedata;
@@ -847,7 +844,7 @@ function openImageWithId(imageid) {
 	});
 	
 	$("#info-saved").text(formatTime(image_entry.saved));
-	state.loaded_image_filename = JSON.parse(localStorage[state.loaded_image]).filename || null;
+	state.loaded_image_filename = state.images[state.loaded_image].filename || null;
 	$("#filename").text(state.loaded_image_filename || "Unnamed");
 	state.undo_list = [];
 	state.changed = false;
@@ -867,7 +864,7 @@ function appendToImagePicker(key) {
 		image.onload = null;
 		resizeImg(key, 32, 32);
 	};
-	image.src = JSON.parse(localStorage[key]).image;
+	image.src = state.images[key].image;
 	let span = $('<span></span>');
 	span.append(image);
 	$("#imagepicker").prepend(span);
@@ -881,15 +878,26 @@ function appendToImagePicker(key) {
 	});
 }
 
-function reloadImagePicker() {
+async function reloadImagePicker() {
 	$("#imagepicker").empty();
-	
-	let images = [];
+	state.images = {};
 
-	for(let i=0; i<localStorage.length; i++) {
-		let key = localStorage.key(i);
-		if(key.substring(0, 6) === "image-")
-			images.push({imageid: key, saved: getAnEntry(key).saved});
+	let images = [];
+	let files = await state.datarchive.readdir("/images");
+
+	for(let i=0; i<files.length; i++) {
+		let key = files[i];
+		if(key.endsWith(".png")) {
+			let image_info = await state.datarchive.stat("images/" + key);
+			let image = await state.datarchive.readFile("images/" + key, "base64");
+			image = baseToDataUrl(image);
+			images.push({
+				imageid: "image-" + UUID.generate(),
+				saved: image_info.mtime,
+				filename: withoutExtension(key),
+				image:image
+			});
+		}
 	}
 
 	images.sort(function(a, b) {
@@ -897,6 +905,11 @@ function reloadImagePicker() {
 	});
 
 	$.each(images, function(index, value) {
+		state.images[value.imageid] = {
+			saved: value.saved,
+			filename: value.filename,
+			image: value.image
+		}
 		appendToImagePicker(value.imageid);
 	});
 }
@@ -974,7 +987,7 @@ function circleTool() {
 }
 
 function getAnEntry(targetid) {
-	return JSON.parse(localStorage.getItem(targetid));
+	return state.images[targetid];
 }
 
 function getEntry() {
@@ -986,13 +999,11 @@ function updateAnEntryWithValues(targetid, values) {
 	$.each(values, function(key, value) {
 		entry[key] = value;
 	});
-	localStorage.setItem(targetid, JSON.stringify(entry));
 }
 
 function updateAnEntry(targetid, key, value) {
 	let entry = getAnEntry(targetid);
 	entry[key] = value;
-	localStorage.setItem(targetid, JSON.stringify(entry));
 }
 
 function updateEntry(key, value) {
@@ -1012,30 +1023,29 @@ function dataUrlToBase(dataurl) {
 }
 
 async function save() {
-	let isnew = false;
 	if(state.loaded_image === null) {
-		isnew = true;
 		state.loaded_image = "image-" + UUID.generate();
-		state.loaded_image_filename = null;
+		state.loaded_image_filename = "image_" + UUID.generate().replace(/-/g, "");
 	} else {
 		$("#imagepicker img#" + state.loaded_image).parent().remove();
 	}
+	
 	let saved = new Date().getTime();
-	let filename = null;
-	if(isnew) {
-		//localStorage.setItem(state.loaded_image, JSON.stringify({saved: saved, filename: state.loaded_image_filename, image: currentImageToDataUrl()}));
-		await state.datarchive.writeFile("images/" + state.loaded_image + ".png", dataUrlToBase(currentImageToDataUrl()), "base64");
-	} else {
-		updateEntry("image", currentImageToDataUrl());
-		updateEntry("saved", saved);
+	state.images[state.loaded_image] = {
+		saved: saved,
+		filename: state.loaded_image_filename,
+		image: currentImageToDataUrl()
 	}
+	await state.datarchive.writeFile("images/" + state.loaded_image_filename + ".png", dataUrlToBase(state.images[state.loaded_image].image), "base64");
 	appendToImagePicker(state.loaded_image);
+
 	$("#info-saved").text(formatTime(saved));
 	displayMessage("Image saved!");
 	state.changed = false;
 	$("#delete").show();
 	$("#duplicate").show();
 	$("#filename").show();
+	$("#filename").text(state.loaded_image_filename);
 	$("#sizetr").hide();
 	$("#size").show();
 	$("#imagepicker img#" + state.loaded_image).parent().addClass("pickerselected");
@@ -1132,6 +1142,11 @@ function circle(x_center, y_center, radius) {
 			state.circle_pixels.push(value);
 		}
 	});
+}
+
+async function loadImages() {
+	await loadDatArchive();
+	await reloadImagePicker();
 }
 
 // Document Ready
@@ -1374,7 +1389,7 @@ $(document).ready(function() {
 			$("#wrapper").scrollTop(0);
 			$("#wrapper").scrollLeft(0);
 			
-			localStorage.removeItem(state.loaded_image);
+			state.datarchive.unlink("images/" + state.loaded_image_filename + ".png");
 			$("#imagepicker img#" + state.loaded_image).parent().remove();
 			$("#info-saved").text("never");
 			displayMessage("Image deleted!");
@@ -1403,8 +1418,6 @@ $(document).ready(function() {
 			$(".pickerselected").removeClass("pickerselected");
 		}
 	});
-	
-	reloadImagePicker();
 	
 	// Set up new handler
 	$("span#new").click(function() {
@@ -1497,7 +1510,7 @@ $(document).ready(function() {
 	$("#cancelrename").hide();
 	$("#filename").hide();
 	$("#filename").click(function() {
-		let fname = state.loaded_image_filename || "Unnamed";
+		let fname = state.loaded_image_filename;
 		$("#info-filename input").val(fname);
 		$("#filename").hide();
 		$("#info-filename input").show();
@@ -1516,13 +1529,20 @@ $(document).ready(function() {
 	$("#info-filename input").keypress(function(e) {
 		if(e.which === 13) {
 			e.preventDefault();
-			$("#filename").text($("#info-filename input").val());
 			$("#info-filename input").hide();
 			$("#cancelrename").hide();
 			$("#filename").show();
-			state.loaded_image_filename = $("#info-filename input").val();
-			updateEntry("filename", state.loaded_image_filename);
-			let entry = getEntry();
+			let new_filename = $("#info-filename input").val();
+			if(new_filename != state.loaded_image_filename) {
+				state.datarchive.rename("images/" + state.loaded_image_filename + ".png", "images/" + new_filename + ".png").then(() => {
+					state.loaded_image_filename = new_filename;
+					updateEntry("filename", new_filename);
+					$("#filename").text(new_filename);
+				}).catch((error) => {
+					alert(error);
+				});
+				
+			}
 			enableShortcuts();
 			disableSelection();
 			return false;
@@ -1562,5 +1582,5 @@ $(document).ready(function() {
 
 	loadSettings();
 
-	loadDatArchive();
+	loadImages();
 });

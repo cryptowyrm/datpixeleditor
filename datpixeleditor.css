@@ -376,6 +376,10 @@ tr.even {
 	cursor: pointer;
 }
 
+td#info-filename {
+    word-break: break-all;
+}
+
 #info-filename input {
 	width: 115px;
 }
