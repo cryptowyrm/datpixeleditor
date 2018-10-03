@@ -2,6 +2,7 @@ const state = {
 	canvas_painting: null, // the actual drawing canvas
 	canvas_grid: null, // the grid to make painting on easier
 	canvas_tools: null, // the canvas used by tools
+	canvas_image: null,
 	recent_colors: [], // recently used colors
 	palette_colors: [],
 	current_color: "#000000",
@@ -45,11 +46,11 @@ const state = {
 }
 
 function loadPixels() {
-	state.pixel_colors = canvas_image.getImageData(0, 0, state.num_cells_x, state.num_cells_y);
+	state.pixel_colors = state.canvas_image.getImageData(0, 0, state.num_cells_x, state.num_cells_y);
 }
 
 function replacePixels() {
-	canvas_image.putImageData(state.pixel_colors, 0, 0);
+	state.canvas_image.putImageData(state.pixel_colors, 0, 0);
 }
 
 function getPixel(x, y, imagedata) {
@@ -1165,7 +1166,7 @@ $(document).ready(function() {
 	state.canvas_painting = document.getElementById("canvas-painting").getContext("2d");
 	state.canvas_grid = document.getElementById("canvas-grid").getContext("2d");
 	state.canvas_tools = document.getElementById("canvas-tools").getContext("2d");
-	canvas_image = document.getElementById("canvas-image").getContext("2d");
+	state.canvas_image = document.getElementById("canvas-image").getContext("2d");
 	
 	loadPixels();
 	
