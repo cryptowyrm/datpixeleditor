@@ -621,18 +621,18 @@ function setPixelData(pixeldata, x, y, color, alpha) {
 }
 
 function updatePreview() {
-	let pixelcount = 0;
+	state.pixelcount = 0;
 	for(let y=0; y<state.num_cells_y; y++) {
 		for(let x=0; x<state.num_cells_x; x++) {
 			let pixel = getPixel(x, y);
 			if(pixel[3] != 0) {
-				pixelcount += 1;
+				state.pixelcount += 1;
 			}
 		}
 	}
 	let data = document.getElementById("canvas-image").toDataURL();
 	document.getElementById("preview").src = data;
-	$("#pixelcount").html(pixelcount + " pixels");
+	$("#pixelcount").html(state.pixelcount + " pixels");
 }
 
 function padWithZeroes(value, n) {
