@@ -131,6 +131,10 @@ function changeCellNum(width, height) {
 }
 
 async function loadDatArchive() {
+	if(!window.DatArchive) {
+		return
+	}
+
 	if (state.settings.daturl) {
 		state.datarchive = await DatArchive.load(state.settings.daturl);
 	} else {
@@ -884,21 +888,37 @@ async function reloadImagePicker() {
 	state.images = {};
 
 	let images = [];
-	let files = await state.datarchive.readdir("/images");
 
-	for(let i=0; i<files.length; i++) {
-		let key = files[i];
-		if(key.endsWith(".png")) {
-			let image_info = await state.datarchive.stat("images/" + key);
-			let image = await state.datarchive.readFile("images/" + key, "base64");
-			image = baseToDataUrl(image);
-			images.push({
-				imageid: "image-" + UUID.generate(),
-				saved: image_info.mtime,
-				filename: withoutExtension(key),
-				image:image
-			});
+	if(window.DatArchive) {
+		let files = await state.datarchive.readdir("/images");
+
+		for(let i=0; i<files.length; i++) {
+			let key = files[i];
+			if(key.endsWith(".png")) {
+				let image_info = await state.datarchive.stat("images/" + key);
+				let image = await state.datarchive.readFile("images/" + key, "base64");
+				image = baseToDataUrl(image);
+				images.push({
+					imageid: "image-" + UUID.generate(),
+					saved: image_info.mtime,
+					filename: withoutExtension(key),
+					image: image
+				});
+			}
 		}
+	} else {
+		await localforage.iterate((value, key, i) => {
+			if(key.endsWith(".png")) {
+				let image_info = JSON.parse(value)
+				let image = baseToDataUrl(image_info.image);
+				images.push({
+					imageid: "image-" + UUID.generate(),
+					saved: image_info.mtime,
+					filename: withoutExtension(key),
+					image: image
+				})
+			}
+		})
 	}
 
 	images.sort(function(a, b) {
@@ -1047,7 +1067,18 @@ async function save() {
 		filename: state.loaded_image_filename,
 		image: currentImageToDataUrl()
 	}
-	await state.datarchive.writeFile("images/" + state.loaded_image_filename + ".png", dataUrlToBase(state.images[state.loaded_image].image), "base64");
+	if(window.DatArchive) {
+		await state.datarchive.writeFile("images/" + state.loaded_image_filename + ".png", dataUrlToBase(state.images[state.loaded_image].image), "base64");
+	} else {
+		await localforage.setItem(
+			state.loaded_image_filename + ".png",
+			JSON.stringify({
+				'mtime': new Date().getTime(),
+				'image': dataUrlToBase(state.images[state.loaded_image].image)
+			})
+		)
+	}
+	
 	appendToImagePicker(state.loaded_image);
 
 	$("#info-saved").text(formatTime(saved));
@@ -1400,7 +1431,12 @@ $(document).ready(function() {
 			$("#wrapper").scrollTop(0);
 			$("#wrapper").scrollLeft(0);
 			
-			state.datarchive.unlink("images/" + state.loaded_image_filename + ".png");
+			if(window.DatArchive) {
+				state.datarchive.unlink("images/" + state.loaded_image_filename + ".png");
+			} else {
+				localforage.removeItem(state.loaded_image_filename + ".png")
+			}
+			
 			$("#imagepicker img#" + state.loaded_image).parent().remove();
 			$("#info-saved").text("never");
 			displayMessage("Image deleted!");
@@ -1550,14 +1586,30 @@ $(document).ready(function() {
 			$("#filename").show();
 			let new_filename = $("#info-filename input").val();
 			if(new_filename != state.loaded_image_filename) {
-				state.datarchive.rename("images/" + state.loaded_image_filename + ".png", "images/" + new_filename + ".png").then(() => {
-					state.loaded_image_filename = new_filename;
-					updateEntry("filename", new_filename);
-					$("#filename").text(new_filename);
-				}).catch((error) => {
-					alert(error);
-				});
-				
+				if(window.DatArchive) {
+					state.datarchive.rename("images/" + state.loaded_image_filename + ".png", "images/" + new_filename + ".png").then(() => {
+						state.loaded_image_filename = new_filename;
+						updateEntry("filename", new_filename);
+						$("#filename").text(new_filename);
+					}).catch((error) => {
+						alert(error);
+					});
+				} else {
+					localforage.getItem(state.loaded_image_filename + ".png")
+					.then((value) => {
+						return localforage.setItem(new_filename + ".png", value)
+					})
+					.then(() => {
+						return localforage.removeItem(state.loaded_image_filename + ".png")
+					})
+					.then(() => {
+						state.loaded_image_filename = new_filename;
+						updateEntry("filename", new_filename);
+						$("#filename").text(new_filename);
+					}).catch((error) => {
+						alert(error);
+					});
+				}
 			}
 			enableShortcuts();
 			disableSelection();

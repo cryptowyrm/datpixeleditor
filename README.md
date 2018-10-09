@@ -4,7 +4,7 @@ A pixel graphics editor for the [Beaker Browser](https://beakerbrowser.com/).
 
 Opens images from and saves images to [Dat](https://datproject.org/) archives. The first time you open the app, it will ask you to create a new DAT archive where all your pictures are going to be stored.
 
-You can try it out in the Beaker Browser at [dat://dpe.hashbase.io](dat://dpe.hashbase.io).
+You can try it out in the Beaker Browser at [dat://dpe.hashbase.io](dat://dpe.hashbase.io) or in other browsers at [https://dpe.hashbase.io](https://dpe.hashbase.io), where IndexedDB is used to store images instead of a Dat Archive.
 
 ![Screenshot](https://i.imgur.com/EZEX3X0.png)
 
