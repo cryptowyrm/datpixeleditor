@@ -37,7 +37,7 @@ The very first commit is a fully working version of the app where images are sav
 - Create GIF animations
 - Record and playback drawings
 
-Due to the way the app works, these last three features are quite trivial to implement. Drawing playback is basically just "single pixel undo" in reverse, the draw commands would be saved to a simple JSON file. Once the Beaker Browser has added the planned multiwriter feature, where multiple authors can write to a Dat Archive much like it works on ZeroNet, a community site could be build where pictures drawn with the app are shared. If the record and playback feature is implemented by then, it would be an awesome learning resource for Pixel art as well :)
+Due to the way the app works, these last three features are quite trivial to implement. Drawing playback is basically just "single pixel undo" in reverse, the draw commands would be saved to a simple JSON file.
 
 ## Pull requests
 
