@@ -1048,8 +1048,10 @@ function exportImage() {
 		let filename = state.loaded_image_filename + ".png";
 		let download_link = $('<a download="' + filename + '" href="' + currentImageToDataUrl() + '">Download</a>');
 		download_link[0].click();
+	} else if (state.pixelcount > 0) {
+		alert("You need to save the image first to export it.");
 	} else {
-		alert("You need to open a file first to export it.");
+		alert("You need to open an image first to export it.");
 	}
 }
 
